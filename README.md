@@ -110,13 +110,11 @@ If you have more time, consider adding:
 
 2. Set your environment variables in `.env`.
 
-3. Run `make build` to build the images.
+3. Run `make startup` to start the app.
 
-4. Run `make startup` to start the app.
+4. Access the API at `http://localhost:8080`.
 
-5. Access the API at `http://localhost:8080`.
-
-6. Access Swagger UI at `http://localhost:8080/swagger/index.html`.
+5. Access Swagger UI at `http://localhost:8080/swagger/index.html`.
 
 ---
 
