@@ -89,18 +89,6 @@ Use the following commands to manage your project easily:
 
 - `make test`  
   Run all tests.
----
-
-## Next Steps / Improvements
-
-If you have more time, consider adding:
-
-- Better error handling with structured error responses.
-- Enhanced logging with request tracing and metrics (e.g., Prometheus).
-- Pagination improvements with more filtering options.
-- API request rate limiting and authentication.
-- Integration tests and improved test coverage.
-- Container orchestration and deployment automation.
 
 ---
 
@@ -117,5 +105,3 @@ If you have more time, consider adding:
 5. Access Swagger UI at `http://localhost:8080/swagger/index.html`.
 
 ---
-
-Thank you for reviewing this project!
