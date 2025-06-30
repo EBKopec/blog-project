@@ -25,7 +25,7 @@ func (m *MockDB) GetPost(postID int) (*models.Post, error) {
 	return &models.Post{ID: postID, Title: "Mock Title", Content: "Mock Content"}, nil
 }
 
-func (m *MockDB) GetPosts() (*[]models.Post, error) {
+func (m *MockDB) GetPosts(limit, offset int, titleFilter string) (*[]models.Post, error) {
 	posts := []models.Post{
 		{ID: 1, Title: "Test Post", Content: "Test content"},
 	}
