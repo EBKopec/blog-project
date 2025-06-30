@@ -1,0 +1,166 @@
+basePath: /
+definitions:
+  handlers.AddCommentRequest:
+    properties:
+      content:
+        type: string
+    required:
+    - content
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      details:
+        type: string
+      message:
+        type: string
+    type: object
+  models.Comment:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      postId:
+        type: integer
+    type: object
+  models.Post:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/models.Comment'
+        type: array
+      comments_count:
+        type: integer
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: RESTful API for managing blog posts and comments
+  title: Blog API
+  version: "1.0"
+paths:
+  /api/posts:
+    get:
+      description: Get all posts with comment count
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Post'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: List blog posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      description: Create post with title and content
+      parameters:
+      - description: Post data
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.Post'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: New Post ID
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create a new blog post
+      tags:
+      - posts
+  /api/posts/{id}:
+    get:
+      description: Get post details including full comments by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Post'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get a blog post by ID
+      tags:
+      - posts
+  /api/posts/{id}/comments:
+    post:
+      consumes:
+      - application/json
+      description: Create comment linked to a specific post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Comment content
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: New Comment ID
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Add a comment to a post
+      tags:
+      - posts
+swagger: "2.0"
