@@ -13,6 +13,7 @@ type DBBlog struct {
 	User   string `json:"user"`
 	Passwd string `json:"passwd"`
 	DBName string `json:"db_name"`
+	DBHost string `json:"db_host"`
 	DB     *sql.DB
 }
 
@@ -21,13 +22,14 @@ func NewDBBlog(data DBBlog) *DBBlog {
 		User:   data.User,
 		Passwd: data.Passwd,
 		DBName: data.DBName,
+		DBHost: data.DBHost,
 	}
 }
 
 func (db *DBBlog) Open() (*DBBlog, error) {
-	connStr := fmt.Sprintf("postgres://%s:%s@localhost:5432/%s?sslmode=disable",
-		db.User, db.Passwd, db.DBName)
-	fmt.Printf(db.User)
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=disable",
+		db.User, db.Passwd, db.DBHost, db.DBName)
+
 	sqlDB, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
@@ -60,11 +62,17 @@ func (db *DBBlog) CreateComment(postId int, comment string) (*int, error) {
 	return &pk, nil
 }
 
-func (db *DBBlog) GetPosts() (*[]models.Post, error) {
+func (db *DBBlog) GetPosts(limit, offset int, titleFilter string) (*[]models.Post, error) {
 	var posts []models.Post
 
-	queryPosts := "SELECT id, title, content FROM blog"
-	rows, err := db.DB.Query(queryPosts)
+	queryPosts := "SELECT blog.id, blog.title, blog.content, blog.created_at, COUNT(comments.id) AS comments_count " +
+		"FROM blog " +
+		"LEFT JOIN comments ON blog.id = comments.post_id " +
+		"WHERE title ILIKE '%' || $1 || '%' " +
+		"GROUP BY blog.id, blog.title, blog.content, blog.created_at " +
+		"ORDER BY blog.id " +
+		"LIMIT $2 OFFSET $3"
+	rows, err := db.DB.Query(queryPosts, titleFilter, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -72,26 +80,10 @@ func (db *DBBlog) GetPosts() (*[]models.Post, error) {
 
 	for rows.Next() {
 		var post models.Post
-		if err := rows.Scan(&post.ID, &post.Title, &post.Content); err != nil {
-			return nil, err
-		}
-		queryComments := "SELECT id, post_id, content FROM comments WHERE post_id = $1"
-		innerRows, err := db.DB.Query(queryComments, post.ID)
-		if err != nil {
+		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.CommentsCount); err != nil {
 			return nil, err
 		}
 
-		var comments []models.Comment
-		for innerRows.Next() {
-			var c models.Comment
-			if err := innerRows.Scan(&c.ID, &c.PostId, &c.Content); err != nil {
-				return nil, err
-			}
-			comments = append(comments, c)
-		}
-		innerRows.Close()
-
-		post.Comments = comments
 		posts = append(posts, post)
 	}
 	return &posts, nil
@@ -99,8 +91,13 @@ func (db *DBBlog) GetPosts() (*[]models.Post, error) {
 
 func (db *DBBlog) GetPost(postID int) (*models.Post, error) {
 	post := &models.Post{}
-	query := "SELECT * FROM blog WHERE ID = $1"
-	err := db.DB.QueryRow(query, postID).Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt)
+	query := "SELECT blog.id, blog.title, blog.content, blog.created_at, COUNT(comments.id) AS comments_count " +
+		"FROM blog " +
+		"LEFT JOIN comments ON blog.id = comments.post_id " +
+		"WHERE blog.id = $1 " +
+		"GROUP BY blog.id, blog.title, blog.content, blog.created_at " +
+		"ORDER BY blog.id"
+	err := db.DB.QueryRow(query, postID).Scan(&post.ID, &post.Title, &post.Content, &post.CreatedAt, &post.CommentsCount)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("post not found")

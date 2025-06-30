@@ -5,10 +5,14 @@ import (
 
 	"github.com/blog-project/internal/handlers"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func Router(db *handlers.Handler) *gin.Engine {
+func Router(db handlers.Handler) *gin.Engine {
 	server := gin.Default()
+	server.Static("/static", "./docs/swaggerui")
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	server.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

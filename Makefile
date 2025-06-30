@@ -45,6 +45,9 @@ help:
 	@echo "  rollback-docker Rollback last migration using Docker container"
 
 
+test:
+	go test ./...
+
 init:
 	go run cmd/main.go
 
