@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS blog (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER NOT NULL REFERENCES blog(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
